@@ -27,6 +27,19 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useForm } from "react-hook-form"
+import { z } from "zod" // Add this import
+import { zodResolver } from "@hookform/resolvers/zod" // Add this import
+
+// Add this type definition
+const formSchema = z.object({
+  date: z.date(),
+  category: z.string(),
+  paymentMode: z.string(),
+  description: z.string(),
+  amount: z.string(), // Keep as string, we'll parse it later if needed
+})
+
+type FormValues = z.infer<typeof formSchema>
 
 const categories = [
   { label: "Food", value: "food" },
@@ -44,7 +57,8 @@ const paymentModes = [
 
 export function ExpenseFormComponent() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
-  const form = useForm({
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       date: new Date(),
       category: "",
@@ -54,7 +68,7 @@ export function ExpenseFormComponent() {
     },
   })
 
-  function onSubmit(data: any) {
+  function onSubmit(data: FormValues) {
     console.log(data)
   }
 
