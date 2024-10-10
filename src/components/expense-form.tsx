@@ -1,24 +1,14 @@
-"use client"
+'use client'
 
+import * as React from "react"
 import { useState } from "react"
-import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
+import { es } from "date-fns/locale"
+import { Calendar as CalendarIcon } from "lucide-react"
+
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 import {
   Select,
   SelectContent,
@@ -26,178 +16,143 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useForm } from "react-hook-form"
-import { z } from "zod" // Add this import
-import { zodResolver } from "@hookform/resolvers/zod" // Add this import
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Input } from "@/components/ui/input"
 
-// Add this type definition
-const formSchema = z.object({
-  date: z.date(),
-  category: z.string(),
-  paymentMode: z.string(),
-  description: z.string(),
-  amount: z.string(), // Keep as string, we'll parse it later if needed
-})
-
-type FormValues = z.infer<typeof formSchema>
-
-const categories = [
-  { label: "Food", value: "food" },
-  { label: "Transportation", value: "transportation" },
-  { label: "Entertainment", value: "entertainment" },
-  { label: "Utilities", value: "utilities" },
-  { label: "Other", value: "other" },
+const paymentMethods = [
+  { label: "Efectivo", value: "efectivo" },
+  { label: "Tarjeta 1", value: "tarjeta1" },
+  { label: "Tarjeta 2", value: "tarjeta2" },
 ]
 
-const paymentModes = [
-  { label: "Cash", value: "cash" },
-  { label: "Visa", value: "visa" },
-  { label: "Mastercard", value: "mastercard" },
+const installments = [1, 3, 6, 12, 18]
+
+const categories = [
+  { label: "Alimentación", value: "alimentacion" },
+  { label: "Transporte", value: "transporte" },
+  { label: "Entretenimiento", value: "entretenimiento" },
+  { label: "Salud", value: "salud" },
+  { label: "Educación", value: "educacion" },
+  { label: "Otros", value: "otros" },
 ]
 
 export function ExpenseFormComponent() {
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      date: new Date(),
-      category: "",
-      paymentMode: "",
-      description: "",
-      amount: "",
-    },
-  })
+  const [date, setDate] = useState<Date | undefined>(undefined)
+  const [paymentMethod, setPaymentMethod] = useState("")
+  const [installment, setInstallment] = useState("1")
+  const [category, setCategory] = useState("")
+  const [description, setDescription] = useState("")
+  const [amount, setAmount] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
-  function onSubmit(data: FormValues) {
-    console.log(data)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    setIsLoading(false)
+    // Reset form
+    setDate(undefined)
+    setPaymentMethod("")
+    setInstallment("1")
+    setCategory("")
+    setDescription("")
+    setAmount("")
   }
 
   return (
-    <div className="w-full max-w-md mx-auto p-6 bg-pink-100 rounded-lg shadow-md">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="date"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full h-10 pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Fecha</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={(date) => {
-                        field.onChange(date)
-                        setIsCalendarOpen(false)
-                      }}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="paymentMode"
-              render={({ field }) => (
-                <FormItem>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Modo de Pago" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {paymentModes.map((mode) => (
-                        <SelectItem key={mode.value} value={mode.value}>
-                          {mode.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
+    <form onSubmit={handleSubmit} className="w-full max-w-md p-6 bg-pink-50 rounded-lg shadow-lg">
+      <div className="space-y-4">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !date && "text-muted-foreground",
+                "bg-secondary hover:bg-secondary/80" // Added background
               )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {date ? format(date, "PPP", { locale: es }) : <span>Fecha</span>}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={setDate}
+              initialFocus
             />
+          </PopoverContent>
+        </Popover>
 
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="h-10">
-                        <SelectValue placeholder="Categoria" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.value} value={category.value}>
-                          {category.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+        <div className="flex gap-2">
+          <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+            <SelectTrigger className="w-[200px] bg-secondary"> {/* Added background */}
+              <SelectValue placeholder="Forma de pago" />
+            </SelectTrigger>
+            <SelectContent>
+              {paymentMethods.map((method) => (
+                <SelectItem key={method.value} value={method.value}>
+                  {method.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Input placeholder="Descripción" {...field} className="h-10" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <Select value={installment} onValueChange={setInstallment}>
+            <SelectTrigger className="w-[120px] bg-secondary"> {/* Added background */}
+              <SelectValue placeholder="N° cuotas" />
+            </SelectTrigger>
+            <SelectContent>
+              {installments.map((number) => (
+                <SelectItem key={number} value={number.toString()}>
+                  {number} cuota{number !== 1 ? 's' : ''}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-          <FormField
-            control={form.control}
-            name="amount"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Input type="number" placeholder="$$$" {...field} className="h-10" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <Select value={category} onValueChange={setCategory}>
+          <SelectTrigger className="w-full bg-secondary"> {/* Added background */}
+            <SelectValue placeholder="Categoría" />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map((cat) => (
+              <SelectItem key={cat.value} value={cat.value}>
+                {cat.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-          <Button type="submit" className="w-full h-10 bg-purple-500 hover:bg-purple-600">
-            CARGAR
-          </Button>
-        </form>
-      </Form>
-    </div>
+        <Input
+          placeholder="Descripción"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+
+        <Input
+          placeholder="$$$"
+          type="number"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+        />
+
+        <Button
+          type="submit"
+          className="w-full bg-purple-500 hover:bg-purple-600 text-white"
+          disabled={isLoading}
+        >
+          {isLoading ? "Cargando..." : "CARGAR"}
+        </Button>
+      </div>
+    </form>
   )
 }
